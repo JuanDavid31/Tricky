@@ -1,0 +1,17 @@
+.casilla{
+    border-color: black;
+    border-style: solid;
+    border-width: 1px;
+    height:100%;
+    width:100%;
+    align-self: center;
+    justify-self: center;
+
+    display:flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ganadora{
+    background-color: red;
+}

@@ -1,0 +1,9 @@
+<div class="container">
+    <casilla [turnoEntrante]="turnoActual" 
+        [id]="i+1"
+        [esGanadora]="comboGanador.includes(i+1)"
+        [letraActual]="casilla.letra"
+        *ngFor="let casilla of casillas; let i = index"
+        (clickeado)="evaluar($event)">
+    </casilla>
+</div>
