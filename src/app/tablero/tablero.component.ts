@@ -26,7 +26,7 @@ export class TableroComponent{
     evaluar(turno:Turno){
         if(this.hayGanador) return;
         this.insertar(turno);
-        if(this.seAcaboLaPartida()){
+        if(this.seAcaboLaPartida(this.casillas)){
             this.hayGanador = true;
         }else{
             this.cambiarTurno();
@@ -37,9 +37,9 @@ export class TableroComponent{
         this.casillas[turno.id-1].letra = turno.letra;
     }
 
-    seAcaboLaPartida(){
-        let casillasO = this.darCasillas('O');
-        let casillasX = this.darCasillas('X');
+    seAcaboLaPartida(juego: Turno[]){
+        let casillasO = this.darCasillas('O', juego);
+        let casillasX = this.darCasillas('X', juego);
         let comboX = this.darComboGanador(casillasX);
         let comboO = this.darComboGanador(casillasO);
         if(comboX){
@@ -52,9 +52,9 @@ export class TableroComponent{
         return false;
     }
 
-    darCasillas(letra){
+    darCasillas(letra, juego: Turno[]){
         let casillas = '';
-        this.casillas.forEach((c) =>{
+        juego.forEach((c) =>{
             if(c.letra === letra){
                 casillas += c.id;
             }
@@ -63,37 +63,122 @@ export class TableroComponent{
     }
 
     darComboGanador(casillas){
-        if(casillas.includes('123')) return '123';
-        if(casillas.includes('456')) return '456';
-        if(casillas.includes('789')) return '789';
-        if(casillas.includes('147')) return '147';
-        if(casillas.includes('258')) return '258';
-        if(casillas.includes('369')) return '369';
-        if(casillas.includes('159')) return '159';
-        if(casillas.includes('357')) return '357';
+        if(casillas.includes('1') && casillas.includes('2') && casillas.includes('3')) return '123';
+        if(casillas.includes('4') && casillas.includes('5') && casillas.includes('6')) return '456';
+        if(casillas.includes('7') && casillas.includes('8') && casillas.includes('9')) return '789';
+        if(casillas.includes('1') && casillas.includes('4') && casillas.includes('7')) return '147';
+        if(casillas.includes('2') && casillas.includes('5') && casillas.includes('8')) return '258';
+        if(casillas.includes('3') && casillas.includes('6') && casillas.includes('9')) return '369';
+        if(casillas.includes('1') && casillas.includes('5') && casillas.includes('9')) return '159';
+        if(casillas.includes('3') && casillas.includes('5') && casillas.includes('7')) return '357';
         return '';
     }
 
     cambiarTurno(){
         if(this.turnoActual === 'X'){
             this.turnoActual = 'O';
-            this.buscarCasillaLibre(); //ejecutamos el algoritmo
+            let nuevaJugada = this.buscarSiguienteJugada(); //ejecutamos el algoritmo
+            this.evaluar(nuevaJugada.jugada);
         }else{
             this.turnoActual = 'X';
         }
     }
 
-    buscarCasillaLibre(){
-        let nuevoTurno = { id:-1, letra:''};
+    buscarSiguienteJugada(){
+        let juego = this.casillas.map(casilla => casilla);
+        let resultado =  this.miniMax(juego, 'O');
+        console.log(resultado);
+        return resultado;
+    }
 
-        for(let i = 0; i < this.casillas.length; i++){
-            let casilla = this.casillas[i];
-            if(casilla.letra === ''){
-            nuevoTurno.id = i+1;
-            nuevoTurno.letra = 'O';
-            this.evaluar(nuevoTurno);
-            return;
+    miniMax(juegoActual:Turno[], turnoActual){
+        let estadoActual = this.darEstadoActual(juegoActual);
+        if(estadoActual === 'X') return -1;
+        else if(estadoActual === 'O') return 1;
+        else if(estadoActual === 'Empate') return 0;
+
+        let jugadasLibres = juegoActual.filter( elemento =>elemento.letra === '');
+
+        let arreglo = [];
+
+        if(turnoActual === 'O'){
+            for(let i = 0; i < jugadasLibres.length; i++){
+                juegoActual[jugadasLibres[i].id - 1].letra = 'O'; //agrego la jugada al juego actual
+                //agregarJugada(juegoActual, jugada);
+                let nuevoValor = this.miniMax(juegoActual, 'X'); //Resultado de la jugada
+                if(typeof nuevoValor !== 'number') nuevoValor = nuevoValor.valor;
+                arreglo.push({valor: nuevoValor, jugada:{ id:jugadasLibres[i].id, letra:'O'}});
+                juegoActual[jugadasLibres[i].id - 1].letra = '';
+                // [{valor, {id: , letra }}]
             }
+            return this.darMejorJugada(arreglo);
+        }else{
+            for(let i = 0; i < jugadasLibres.length; i++){
+
+                juegoActual[jugadasLibres[i].id - 1].letra = 'X';
+                let nuevoValor = this.miniMax(juegoActual, 'O');
+                if(typeof nuevoValor !== 'number'){
+                    nuevoValor = nuevoValor.valor;
+                }
+                arreglo.push({
+                    valor: nuevoValor, 
+                    jugada:{
+                        id:jugadasLibres[i].id, 
+                        letra:'X'
+                    }
+                });
+                juegoActual[jugadasLibres[i].id - 1].letra = '';
+                // [{valor, {id: , letra }}]
+            }       
+            return this.darPeorJugada(arreglo);
         }
     }
+
+    darEstadoActual(juego:Turno[]){
+        let casillasO = this.darCasillas('O', juego);
+        let casillasX = this.darCasillas('X', juego);
+        let comboX = this.darComboGanador(casillasX);
+        let comboO = this.darComboGanador(casillasO);
+        if(comboX){
+            return 'X';
+        }else if(comboO){
+            return 'O';
+        }else if(this.darCasillasOcupadas(juego).length === 9){
+            return 'Empate';
+        }
+        return '';
+    }
+
+    darCasillasOcupadas(juego:Turno[]){
+        return juego.filter(e => e.letra !== "");
+    }
+
+    generarArbolDeJugadas(){
+
+    }
+
+    darMejorJugada(jugadas){
+        let max = -2;
+        let index = -1;
+        for(let i = 0; i < jugadas.length; i++){
+            if(jugadas[i].valor > max) {
+                max = jugadas[i].valor;
+                index = i;
+            }
+        }
+        return jugadas[index];
+    }
+
+    darPeorJugada(jugadas){
+        let index = -1;
+        let min = 99;
+        for(let i = 0; i < jugadas.length; i++){
+            if(jugadas[i].valor < min){
+                index = i;
+                min = jugadas[i].valor;
+            }
+        }
+        return jugadas[index];
+    }
+
 }
