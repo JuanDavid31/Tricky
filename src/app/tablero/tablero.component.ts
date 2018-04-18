@@ -86,9 +86,8 @@ export class TableroComponent{
 
     buscarSiguienteJugada(){
         let juego = this.casillas.map(casilla => casilla);
-        let resultado =  this.miniMax(juego, 'O');
-        console.log(resultado);
-        return resultado;
+        let siguienteJugada =  this.miniMax(juego, 'O');
+        return siguienteJugada;
     }
 
     miniMax(juegoActual:Turno[], turnoActual){
@@ -97,40 +96,28 @@ export class TableroComponent{
         else if(estadoActual === 'O') return 1;
         else if(estadoActual === 'Empate') return 0;
 
-        let jugadasLibres = juegoActual.filter( elemento =>elemento.letra === '');
-
-        let arreglo = [];
+        let jugadasLibres = this.darJugadasLibres(juegoActual);
+        
+        let proximasJugadas = [];
 
         if(turnoActual === 'O'){
             for(let i = 0; i < jugadasLibres.length; i++){
-                juegoActual[jugadasLibres[i].id - 1].letra = 'O'; //agrego la jugada al juego actual
-                //agregarJugada(juegoActual, jugada);
-                let nuevoValor = this.miniMax(juegoActual, 'X'); //Resultado de la jugada
-                if(typeof nuevoValor !== 'number') nuevoValor = nuevoValor.valor;
-                arreglo.push({valor: nuevoValor, jugada:{ id:jugadasLibres[i].id, letra:'O'}});
-                juegoActual[jugadasLibres[i].id - 1].letra = '';
-                // [{valor, {id: , letra }}]
+                this.agregarJugada(juegoActual, jugadasLibres[i], turnoActual);
+                let jugadaResultado = this.miniMax(juegoActual, 'X'); //Resultado de la jugada
+                if(typeof jugadaResultado !== 'number') jugadaResultado = jugadaResultado.valor;
+                proximasJugadas.push({valor: jugadaResultado, jugada:{ id:jugadasLibres[i].id, letra:'O'}});
+                this.eliminarJugada(juegoActual, jugadasLibres[i]);
             }
-            return this.darMejorJugada(arreglo);
+            return this.darMejorJugada(proximasJugadas);
         }else{
             for(let i = 0; i < jugadasLibres.length; i++){
-
-                juegoActual[jugadasLibres[i].id - 1].letra = 'X';
-                let nuevoValor = this.miniMax(juegoActual, 'O');
-                if(typeof nuevoValor !== 'number'){
-                    nuevoValor = nuevoValor.valor;
-                }
-                arreglo.push({
-                    valor: nuevoValor, 
-                    jugada:{
-                        id:jugadasLibres[i].id, 
-                        letra:'X'
-                    }
-                });
-                juegoActual[jugadasLibres[i].id - 1].letra = '';
-                // [{valor, {id: , letra }}]
+                this.agregarJugada(juegoActual, jugadasLibres[i], turnoActual);
+                let jugadaResultado = this.miniMax(juegoActual, 'O');
+                if(typeof jugadaResultado !== 'number') jugadaResultado = jugadaResultado.valor;
+                proximasJugadas.push({valor: jugadaResultado, jugada:{id:jugadasLibres[i].id, letra:'X'}});
+                this.eliminarJugada(juegoActual, jugadasLibres[i]);
             }       
-            return this.darPeorJugada(arreglo);
+            return this.darPeorJugada(proximasJugadas);
         }
     }
 
@@ -153,8 +140,8 @@ export class TableroComponent{
         return juego.filter(e => e.letra !== "");
     }
 
-    generarArbolDeJugadas(){
-
+    darJugadasLibres(juegoActual){
+        return juegoActual.filter( elemento =>elemento.letra === '');
     }
 
     darMejorJugada(jugadas){
@@ -179,6 +166,21 @@ export class TableroComponent{
             }
         }
         return jugadas[index];
+    }
+
+    agregarJugada(juegoActual, jugada, turnoActual){
+        juegoActual[jugada.id - 1].letra = turnoActual;
+    }
+
+    generarArbolDeJugadas(juegoActual, turnoActual, proximasJugadas){
+        let turnoSiguiente = turnoActual === 'X' ? 'O': 'X';
+        let jugadaResultado = this.miniMax(juegoActual, turnoSiguiente); //Resultado de la jugada
+        if(typeof jugadaResultado !== 'number') jugadaResultado = jugadaResultado.valor;
+        //proximasJugadas.push({valor: jugadaResultado, jugada:{ id:jugadasLibres[i].id, letra:'O'}});
+    }
+
+    eliminarJugada(juegoActual, jugada){
+        juegoActual[jugada.id - 1].letra = '';
     }
 
 }
