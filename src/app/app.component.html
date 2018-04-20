@@ -1,1 +1,3 @@
-<tablero></tablero>
+<button *ngIf="!letraInicial" (click)="empiezaX()">Empieza X</button>
+<button *ngIf="!letraInicial" (click)="empiezaO()">Empieza O</button>
+<tablero [letraInicial]="letraInicial" *ngIf="letraInicial"></tablero>

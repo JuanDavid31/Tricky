@@ -1,4 +1,4 @@
-import { Component} from '@angular/core';
+import { Component, Input} from '@angular/core';
 import { Turno } from '../objetos/Turno';
 
 @Component({
@@ -19,15 +19,28 @@ export class TableroComponent{
         {id:8, letra:''},
         {id:9, letra:''}
     ];
-    turnoActual:string = 'X';
+    @Input('letraInicial')turnoActual:string = '';
     comboGanador:string = '';
-    hayGanador:boolean = false;
+    partidaAcaba:boolean = false;
+    puntajeX:number = 0;
+    puntajeO:number = 0;
 
+    ngOnInit(){
+        this.jugadaInicial();
+    }
+
+    jugadaInicial(){
+        if(this.turnoActual === 'O'){
+            this.turnoActual = 'X';
+            this.cambiarTurno();
+        }   
+    }
+    
     evaluar(turno:Turno){
-        if(this.hayGanador) return;
+        if(this.partidaAcaba) return;
         this.insertar(turno);
         if(this.seAcaboLaPartida(this.casillas)){
-            this.hayGanador = true;
+            this.partidaAcaba = true;
         }else{
             this.cambiarTurno();
         }
@@ -44,12 +57,12 @@ export class TableroComponent{
         let comboO = this.darComboGanador(casillasO);
         if(comboX){
             this.comboGanador = comboX;
-            return true;
+            this.puntajeX++;
         }else if(comboO){
             this.comboGanador = comboO;
-            return true;
+            this.puntajeO++;
         }
-        return false;
+        return this.darEstadoActual(this.casillas);
     }
 
     darCasillas(letra, juego: Turno[]){
@@ -181,6 +194,23 @@ export class TableroComponent{
 
     eliminarJugada(juegoActual, jugada){
         juegoActual[jugada.id - 1].letra = '';
+    }
+
+    juegoNuevo(){
+        this.casillas = [
+            {id:1, letra:''},
+            {id:2, letra:''},
+            {id:3, letra:''},
+            {id:4, letra:''},
+            {id:5, letra:''},
+            {id:6, letra:''},
+            {id:7, letra:''},
+            {id:8, letra:''},
+            {id:9, letra:''}
+        ];
+        this.turnoActual = 'X';
+        this.comboGanador = '';
+        this.partidaAcaba = false;
     }
 
 }

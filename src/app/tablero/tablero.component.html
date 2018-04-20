@@ -7,3 +7,6 @@
         (clickeado)="evaluar($event)">
     </casilla>
 </div>
+<h1 *ngIf="partidaAcaba" (click)="juegoNuevo()">Juego Nuevo</h1>
+<h1>Jugador 1 - {{puntajeX}}</h1>
+<h1>Jugador 2 - {{puntajeO}}</h1>

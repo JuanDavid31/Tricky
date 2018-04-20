@@ -6,4 +6,15 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
+
+    letraInicial:string= "";
+
+
+    empiezaX(){
+        this.letraInicial = 'X';
+    }
+
+    empiezaO(){
+        this.letraInicial = 'O';
+    }
 }
